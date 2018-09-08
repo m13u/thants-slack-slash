@@ -55,8 +55,10 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  string_transformer:
+    handler: handler.string_transformer
+    events:
+      - http: POST string_transformer
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
