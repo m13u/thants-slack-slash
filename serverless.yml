@@ -4,6 +4,7 @@ provider:
   name: aws
   runtime: python3.6
   stage: dev
+  memorysize: 128
   region: eu-west-2
 
 functions:
