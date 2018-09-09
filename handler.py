@@ -9,6 +9,7 @@ Usage:
 
 import json
 import re
+import os
 from urllib.parse import parse_qsl
 
 def parse_input(data):
@@ -20,6 +21,14 @@ def parse_input(data):
         result[item[0]] = item[1]
     return result
 
+def validate_token(request_slack_token):
+    """Make sure the Slack token being sent in the request matches the one
+    we've set as an environment variable."""
+    if request_slack_token == os.environ['SLACK_TOKEN']:
+        return
+    else:
+        raise ValueError
+
 def string_devoweler(input_string):
     """Return a substring that has all the characters up to (but not including)
     the first instance of any vowel"""
@@ -28,7 +37,7 @@ def string_devoweler(input_string):
     output_string = ''.join(output_array)
     return output_string
 
-def string_transformer(event):
+def string_transformer(event, context):
     """Handle the two incoming strings sent from a custom Slack slash command,
     modify and concatenate the strings and return it in-line in Slack."""
     try:
@@ -36,6 +45,17 @@ def string_transformer(event):
     except SyntaxError:
         return {
             "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": "{}",
+        }
+
+    request_slack_token = request_data['token']
+
+    try:
+        validate_token(request_slack_token)
+    except ValueError:
+        return {
+            "statusCode": 403,
             "headers": {"Content-Type": "application/json"},
             "body": "{}",
         }
