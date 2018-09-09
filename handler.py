@@ -1,9 +1,19 @@
-# 'Inspired' liberally by https://grundleborg.github.io/posts/mattermost-custom-slash-command-aws-lambda/
+"""Responds to a custom Slack slash command that takes two parameters: a prefix
+string and an object (target) string. Truncate the prefix string before the
+first instance of any vowel. Then left-strip the object string until the first
+instance of any vowel (preserve the vowel). Then concatenate the strings and
+return it in-line in Slack.
+
+Usage:
+/slack_command_name prefix_string object_string"""
+
 import json
 import re
 from urllib.parse import parse_qsl
 
 def parse_input(data):
+    """Convert data of type application/x-www-form-urlencoded received from
+    Slack into a dict of values for easier access."""
     parsed = parse_qsl(data, keep_blank_values=True)
     result = {}
     for item in parsed:
@@ -11,15 +21,19 @@ def parse_input(data):
     return result
 
 def string_devoweler(input_string):
+    """Return a substring that has all the characters up to (but not including)
+    the first instance of any vowel"""
     # re.split returns an array, not a string, so we have to convert it back into a string
     output_array = re.split('[AEIOU]', input_string, maxsplit=1, flags=re.IGNORECASE)[0]
     output_string = ''.join(output_array)
     return output_string
 
-def string_transformer(event, context):
+def string_transformer(event):
+    """Handle the two incoming strings sent from a custom Slack slash command,
+    modify and concatenate the strings and return it in-line in Slack."""
     try:
         request_data = parse_input(event['body'])
-    except:
+    except SyntaxError:
         return {
             "statusCode": 400,
             "headers": {"Content-Type": "application/json"},
@@ -45,6 +59,6 @@ def string_transformer(event, context):
 
     return {
         "body": json.dumps(response),
-        "headers": { "Content-Type": "application/json" },
+        "headers": {"Content-Type": "application/json"},
         "statusCode": 200,
     }
