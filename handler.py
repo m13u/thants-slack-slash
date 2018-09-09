@@ -1,11 +1,28 @@
+# 'Inspired' liberally by https://grundleborg.github.io/posts/mattermost-custom-slash-command-aws-lambda/
 import json
 import re
+from urllib.parse import parse_qsl
+
+def parse_input(data):
+    parsed = parse_qsl(data, keep_blank_values=True)
+    result = {}
+    for item in parsed:
+        result[item[0]] = item[1]
+    return result
 
 def string_transformer(event, context):
+    try:
+        request_data = parse_input(event['body'])
+    except:
+        return {
+            "statusCode": 400,
+            "headers": {"Content-Type": "application/json"},
+            "body": "{}",
+        }
 
-    # Get the strings out of the dict and into more convenient variables
-    prefix_string = event['prefix_string']
-    object_string = event['object_string']
+    request_text = request_data['text']
+    prefix_string = request_text.split(' ', 1)[0]
+    object_string = request_text.split(' ', 1)[1]
     # Get the substring that stops at the first vowel
     devoweled_prefix_array = re.split('[AEIOU]', prefix_string, maxsplit=1, flags=re.IGNORECASE)[0]
     # Convert it back into a string
@@ -16,14 +33,13 @@ def string_transformer(event, context):
     # Ellide/Concatenate the strings
     concatenated_string = devoweled_prefix_string.title() + devoweled_object_string.lower()
 
-    body = {
-        "message": concatenated_string,
-        "input": event
-    }
-
     response = {
-        "statusCode": 200,
-        "body": json.dumps(body)
+        "response_type": "in_channel",
+        "text": concatenated_string,
     }
 
-    return response
+    return {
+        "body": json.dumps(response),
+        "headers": { "Content-Type": "application/json" },
+        "statusCode": 200,
+    }
