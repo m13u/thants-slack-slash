@@ -10,6 +10,10 @@ def parse_input(data):
         result[item[0]] = item[1]
     return result
 
+def string_devoweler(input_string):
+    output_string = re.split('[AEIOU]', input_string, maxsplit=1, flags=re.IGNORECASE)[0]
+    return output_string
+
 def string_transformer(event, context):
     try:
         request_data = parse_input(event['body'])
@@ -24,11 +28,11 @@ def string_transformer(event, context):
     prefix_string = request_text.split(' ', 1)[0]
     object_string = request_text.split(' ', 1)[1]
     # Get the substring that stops at the first vowel
-    devoweled_prefix_array = re.split('[AEIOU]', prefix_string, maxsplit=1, flags=re.IGNORECASE)[0]
+    devoweled_prefix_array = string_devoweler(prefix_string)
     # Convert it back into a string
     devoweled_prefix_string = ''.join(devoweled_prefix_array)
     # Strip letters from the object string until we hit our first vowel
-    strings_to_delete_from_object = re.split('[AEIOU]', object_string, maxsplit=1, flags=re.IGNORECASE)[0]
+    strings_to_delete_from_object = string_devoweler(object_string)
     devoweled_object_string = re.sub(strings_to_delete_from_object, '', object_string)
     # Ellide/Concatenate the strings
     concatenated_string = devoweled_prefix_string.title() + devoweled_object_string.lower()
