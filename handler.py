@@ -32,9 +32,12 @@ def validate_token(request_slack_token):
 def string_devoweler(input_string):
     """Return a substring that has all the characters up to (but not including)
     the first instance of any vowel"""
+    # Always preserve the first letter, even if it's a vowel, so exclude it from the substitution
+    string_to_disemvowel = input_string[1:]
     # re.split returns an array, not a string, so we have to convert it back into a string
-    output_array = re.split('[AEIOU]', input_string, maxsplit=1, flags=re.IGNORECASE)[0]
-    output_string = ''.join(output_array)
+    output_array = re.split('[AEIOU]', string_to_disemvowel, maxsplit=1, flags=re.IGNORECASE)[0]
+    # Add the first letter back in and concatenate it with the devoweled-chomped string
+    output_string = input_string[:1] + ''.join(output_array)
     return output_string
 
 def string_transformer(event, context):
