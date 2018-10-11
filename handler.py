@@ -28,16 +28,32 @@ def validate_token(request_slack_token):
     else:
         raise ValueError
 
-def string_devoweler(input_string):
-    """Return a substring that has all the characters up to (but not including)
-    the first instance of any vowel"""
-    # Always preserve the first letter, even if it's a vowel, so exclude it from the substitution
-    string_to_disemvowel = input_string[1:]
-    # re.split returns an array, not a string, so we have to convert it back into a string
-    output_array = re.split('[AEIOU]', string_to_disemvowel, maxsplit=1, flags=re.IGNORECASE)[0]
-    # Add the first letter back in and concatenate it with the devoweled-chomped string
-    output_string = input_string[:1] + ''.join(output_array)
-    return output_string
+def split_string(str):
+    """Return an array containing [start_string, end_string]."""
+    str = str.lower()
+    start = ''
+    end = list(str)
+    str = list(str)
+
+    # Add all preceding vowels to the start string and remove them from
+    # the start of the rest.
+    while len(str) > 0 and str[0] in 'aeiou:':
+        start += str.pop(0)
+
+    # Add all consonants up to the first vowel in the remaining str to
+    # the start string and remove from the start of the rest.
+    while len(str) > 0 and not str[0] in 'aeiou':
+        start += str.pop(0)
+
+    # Add a 'u' if the start ends with a 'q'
+    if start[-1] == 'q':
+        start += 'u'
+
+    # Remove all preceding consonants from the end string
+    while len(end) > 0 and not end[0] in 'aeiou':
+        end.pop(0)
+
+    return [''.join(start), ''.join(end)]
 
 def string_transformer(event, context):
     """Handle the incoming strings sent from a custom Slack slash command,
@@ -62,21 +78,20 @@ def string_transformer(event, context):
             "body": "{}",
         }
 
-    request_text = request_data['text']
-    prefix_string = request_text.split(' ', 1)[0]
-    object_string = request_text.split(' ', 1)[1]
+    strings = request_data['text'].split(' ')
+    out = []
 
-    devoweled_prefix_string = string_devoweler(prefix_string)
-    # Strip letters from the object string until we hit our first vowel
-    string_to_delete_from_object = string_devoweler(object_string)
-    devoweled_object_string = re.sub(string_to_delete_from_object, '', object_string, 1)
+    # Add pairs of merged strings to the output
+    while len(strings) > 1:
+        out.append(split(strings.pop(0))[0], split(strings.pop(0))[1])
 
-    # Ellide/Concatenate the strings
-    concatenated_string = devoweled_prefix_string.title() + devoweled_object_string.lower()
+    # Add a trailing spare word if there is one
+    if len(strings) > 0:
+        out.append(strings[0])
 
     response = {
         "response_type": "in_channel",
-        "text": concatenated_string,
+        "text": ''.join(out).capitalize(),
     }
 
     return {
