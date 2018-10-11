@@ -8,7 +8,6 @@ Usage:
 /slack_command_name arg1 arg2 arg3 arg4"""
 
 import json
-import re
 import os
 from urllib.parse import parse_qsl
 
