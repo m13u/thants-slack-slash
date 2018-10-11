@@ -1,11 +1,11 @@
-"""Responds to a custom Slack slash command that takes two parameters: a prefix
-string and an object (target) string. Truncate the prefix string before the
-first instance of any vowel. Then left-strip the object string until the first
-instance of any vowel (preserve the vowel). Then concatenate the strings and
-return it in-line in Slack.
+"""Responds to a custom Slack slash command that takes any number of strings,
+truncates the first before the first instance of any vowel then left-strips
+the next string until the first instance of any vowel (preserves the vowel)
+and concatenates the strings. This is done for any number of pairs of words,
+then joins them all with ' ' and returns it in-line in Slack.
 
 Usage:
-/slack_command_name prefix_string object_string"""
+/slack_command_name arg1 arg2 arg3 arg4"""
 
 import json
 import re
@@ -41,7 +41,7 @@ def string_devoweler(input_string):
     return output_string
 
 def string_transformer(event, context):
-    """Handle the two incoming strings sent from a custom Slack slash command,
+    """Handle the incoming strings sent from a custom Slack slash command,
     modify and concatenate the strings and return it in-line in Slack."""
     try:
         request_data = parse_input(event['body'])
