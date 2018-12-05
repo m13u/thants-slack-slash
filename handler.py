@@ -68,12 +68,15 @@ def string_transformer(event, context):
     object_string = request_text.split(' ', 1)[1]
 
     devoweled_prefix_string = string_devoweler(prefix_string)
-    # Strip letters from the object string until we hit our first vowel
-    string_to_delete_from_object = string_devoweler(object_string)
-    devoweled_object_string = re.sub(string_to_delete_from_object, '', object_string, 1)
-
-    # Ellide/Concatenate the strings
-    concatenated_string = devoweled_prefix_string.title() + devoweled_object_string.lower()
+    # If the object string starts with a vowel, just keep the entire string
+    if set('aeiou').intersection(object_string[0].lower()):
+        concatenated_string = devoweled_prefix_string.title() + object_string.lower()
+    else:
+        # Strip letters from the object string until we hit our first vowel
+        string_to_delete_from_object = string_devoweler(object_string)
+        devoweled_object_string = re.sub(string_to_delete_from_object, '', object_string, 1)
+        # Ellide/Concatenate the strings
+        concatenated_string = devoweled_prefix_string.title() + devoweled_object_string.lower()
 
     response = {
         "response_type": "in_channel",
